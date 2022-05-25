@@ -3,7 +3,7 @@
 import sys,struct,socket,threading
 
 HOST = "127.0.0.1"
-PORT = 1030
+PORT = 1033
 
 def recv_all(conn,n):
   chunks = b''

@@ -6,7 +6,7 @@
 #include "xerrori.h"
 #define QUI __LINE__,__FILE__
 #define HOST "127.0.0.1"
-#define PORT 1030
+#define PORT 1033
 #define DE 0  //Data Exchange
 #define CC -1 //Close Connection
 #define MAX_SIZE 255 //lunghezza massima nome di un file
@@ -161,7 +161,16 @@ int main(int argc, char *argv[])
 	if ( nthread< 1 ) termina("numero di thread minore di 1");
 	if (qlen< 1 ) termina("dimensione del buffer minore di 1");
 	if (delay< 0 ) termina("delay negativo");
-	if(!check_server()) termina("il server non risponde");
+
+	int i=0;
+
+	while(i<3 ){
+		if(check_server()) break;
+		i++;
+		sleep(1);
+	}
+
+	if (i==3) termina("il server non risponde");
 	char** pcbuff=malloc( sizeof(char*)*qlen );//buffer prod/cons
 	sem_t free_slots;
 	sem_t data_items;
@@ -219,5 +228,6 @@ int main(int argc, char *argv[])
 	xpthread_mutex_destroy(&pcmux,QUI);
 	sem_destroy(&free_slots);
 	sem_destroy(&data_items);
+	printf("C-finito\n");
 	return 0;
 }
