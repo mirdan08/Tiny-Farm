@@ -228,6 +228,5 @@ int main(int argc, char *argv[])
 	xpthread_mutex_destroy(&pcmux,QUI);
 	sem_destroy(&free_slots);
 	sem_destroy(&data_items);
-	printf("C-finito\n");
 	return 0;
 }

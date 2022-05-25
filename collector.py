@@ -61,4 +61,3 @@ def main(host=HOST,port=PORT):
 		s.shutdown(socket.SHUT_RDWR)
 
 main()
-print("finito")
