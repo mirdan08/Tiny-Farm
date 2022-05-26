@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 	}
 	//invio nome file sul buffer
 	while(optind<argc && !interrupt){
-		sleep(delay/1000);
+		usleep(delay*1000);
 
 		xsem_wait(&free_slots,QUI);
 		xpthread_mutex_lock(&pcmux,QUI);
