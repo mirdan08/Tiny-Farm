@@ -1,22 +1,28 @@
-# client 
-Il client fai uso di multithreading per poter rendere piu veloce la trasmissione dei dati , per rendere piu semplice la comunicazione  e' stata adottata la tecnica  produttori consumatori,
-il thread principale (_masterworker_) e' il produttore mentre i thread (_worker_) sono i lettori.
+# Tiny-farm
+This is a project i developed for the Laboratory 2 course at university. The project consists of implementing multithreading and inter-process communication to optimize computations across multiple files.
 
-Questo sistema consente di inviare ad ogni thread un file alla volta assicurando tramite  l'uso dei semafori `data_items` e `free_slots` l'inserimento di dati quando ci slot che sono disponibili perche' gia letti o non utilizzati e tramite la mutex `pcmux` consente l'accesso ad un solo thread alla volta per evitare sovrascritture indesiderate da parte del masterworker o la lettura dello stesso file da due worker diversi nel buffer condiviso `pcbuff`.
-# masterworker
-Per controllare se il server e' attivo all'avvio dell'applicazine vengono effettuati tre tentivi per aprire e chiudere una connessione col server tramite la funzione `check_server()` a distanza di un secondo uno dall'altro questo serve perche e' possibile che il server non riesca a ricevere correttamnete l'inizializzazione attraverso la rete in questo modo si evita di chiudere il programma nonostante il server sia attivo e consentono di determinare se e' effettivamente attivo.
-# trasmissione dati
-per poter garantire il corretto invio dei dati e la terminazione del server i dati vengono trasmessi dai worker nel seguente formato un intero di 4 byte
-- se e' 0 indica l'inizio dello scambio di dati nel seguente formato:
-    1. lunghezza del messaggio (4 byte)
-    2. somma calcolata (8 byte)
-    3. nome del file (lunghezza messaggio - 8)
-    
-    se la lunghezza ricevuta e' negativa indica la chiusura della connessione iniziata dal thread
-- altrimenti verra interpretato come messaggio di chiusura del server
+# Client
+The client uses multithreading to speed up data transmission. To simplify communication, the producer-consumer technique was adopted, where the main thread (_masterworker_) is the producer, and the threads (_workers_) are the consumers.
 
-questo sistema consente di distinguere tramite i primi 4 byte se intendo scambiare dati oppure no mentre per quanto riguarda i dati con la lunghezza negativa si puo' segnalare ai thread del server l'intenzione di terminare oppure continuare a scambiare dati fra i thread.
-# server
- Legge i primi 4 byte per poter decidere se si tratta di un inizio di scambio dati o il messaggio di chiusura in caso sia uno scambio dati affida la connessione appena creata ad un thread che si occupera di ricevere i dati in accordo col formato sopra descritto questo meccanismo consente di gestire piu velocemente richieste da client multipli.
-# gestione segnale di interruzione
-E'stato scelto l'utilizzo di un apposito thred che attende il segnale `SIGINT` per poter convidivedere una variabile con il masterworker in modo da segnalargli l'arrivo di SIGINT per fargli smettere di invaire dati sul buffer e cominciare a far termianre i thread ed inviare il messaggio di chiusura al server.
+This system sends one file at a time to each thread, ensuring data insertion when slots are available through the use of `data_items` and `free_slots` semaphores. The `pcmux` mutex ensures that only one thread can access the data at a time, preventing undesirable overwrites by the masterworker or two workers reading the same file from the shared buffer `pcbuff`.
+
+# Masterworker
+To check if the server is active, the application attempts to open and close a connection with the server three times at one-second intervals using the `check_server()` function. This prevents the program from closing if the server is active but temporarily unable to receive initialization through the network, helping determine if the server is indeed active.
+
+# Data Transmission
+To ensure the correct transmission of data and termination of the server, data is sent by the workers in the following format, with a 4-byte integer:
+- If the integer is 0, it indicates the start of data exchange in the following format:
+    1. Message length (4 bytes)
+    2. Calculated sum (8 bytes)
+    3. File name (message length - 8 bytes)
+  
+  If the received length is negative, it indicates connection closure initiated by the thread.
+- Otherwise, it will be interpreted as a server shutdown message.
+
+This system distinguishes data exchange from other actions using the first 4 bytes, while a negative length signals the server threads to terminate or continue exchanging data among threads.
+
+# Server
+The server reads the first 4 bytes to determine if it’s a data exchange initiation or a shutdown message. If it's data exchange, the newly created connection is handed over to a thread that will receive data according to the format described above, allowing for faster handling of requests from multiple clients.
+
+# Interrupt Signal Handling
+A dedicated thread was chosen to wait for the `SIGINT` signal. This thread shares a variable with the masterworker to signal when `SIGINT` arrives, instructing it to stop sending data to the buffer, terminate the threads, and send the shutdown message to the server.
